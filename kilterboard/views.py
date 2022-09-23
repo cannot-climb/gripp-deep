@@ -9,11 +9,23 @@ class IndexViewListView(generics.ListAPIView):
     queryset = ClimbVideo.objects.all()
     serializer_class = ClimbVideoSerializer
 
+    def get(self, request, *args, **kwargs):
+        if request.user.is_anonymous:
+            return Response(
+                {"message": "token is needed"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        return super().get(request, *args, **kwargs)
+
 
 class ClimbVideoCreateView(generics.CreateAPIView):
     serializer_class = ClimbVideoSerializer
 
     def create(self, request, *args, **kwargs):
+        if request.user.is_anonymous:
+            return Response(
+                {"message": "token is needed"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
