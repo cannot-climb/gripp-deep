@@ -43,7 +43,7 @@ Fail: 401 Unauthorized
 <summary>predict</summary>
 
 - Request
-  - video_url: string
+  - videoUrl: string
   - title: string
   - degree: int
   - difficulty: degree
