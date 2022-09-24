@@ -1,5 +1,9 @@
 from django.db import models
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import (
+    MaxValueValidator,
+    MinValueValidator,
+    FileExtensionValidator,
+)
 from django.utils import timezone
 
 
@@ -14,9 +18,13 @@ class ClimbVideo(models.Model):
     )
     upload_at = models.DateTimeField(default=timezone.now)
 
-    video = models.FileField(null=True)
-    start_time = models.TimeField(null=True)
-    end_time = models.TimeField(null=True)
+    video = models.FileField(
+        null=True,
+        blank=True,
+        validators=[FileExtensionValidator(allowed_extensions=["avi", "mp4", "mov"])],
+    )
+    start_time = models.TimeField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
     success = models.BooleanField(default=False)
 
 
