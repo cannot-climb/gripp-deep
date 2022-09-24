@@ -14,10 +14,10 @@ class ClimbVideo(models.Model):
     )
     upload_at = models.DateTimeField(default=timezone.now)
 
-    video = models.FileField(blank=True)
-    start_time = models.TimeField(blank=True)
-    end_time = models.TimeField(blank=True)
-    success = models.BooleanField(blank=True)
+    video = models.FileField(null=True)
+    start_time = models.TimeField(null=True)
+    end_time = models.TimeField(null=True)
+    success = models.BooleanField(default=False)
 
 
 # Create your models here.
