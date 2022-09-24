@@ -18,7 +18,7 @@ url: accounts/token/obtain
   - token: string
 
 access token lifetime: 5 min  
-refresh token lifetime: 1 day
+refresh token lifetime: 30 day
 </details>
 <details>
 
