@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from accounts.serializer import UserLoginSerializer
 
 
-class UserLoginView(views.APIView):
+class TokenObtainPairView(views.APIView):
     def post(self, request):
         serializer = UserLoginSerializer(data=request.data)
         if not serializer.is_valid(raise_exception=True):
@@ -12,5 +12,8 @@ class UserLoginView(views.APIView):
                 {"message": "Request Body Error."}, status=status.HTTP_409_CONFLICT
             )
 
-        response_data = {"token": serializer.data["access_token"]}
+        response_data = {
+            "access": serializer.data["access_token"],
+            "refresh": serializer.data["refresh_token"],
+        }
         return Response(response_data, status=status.HTTP_200_OK)

@@ -17,8 +17,8 @@ class UserLoginSerializer(serializers.Serializer):
         if user is None:
             return {
                 "username": "None",
-                "refresh_token": str(None),
-                "access_token": str(None),
+                "refresh_token": "None",
+                "access_token": "None",
             }
 
         refresh = RefreshToken.for_user(user)
