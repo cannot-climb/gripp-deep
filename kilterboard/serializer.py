@@ -6,4 +6,10 @@ from .models import ClimbVideo
 class ClimbVideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClimbVideo
-        fields = ("video", "title", "degree", "difficulty")
+        fields = ("video_url", "title", "degree", "difficulty")
+
+
+class ResponseClimbVideoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClimbVideo
+        fields = ("start_time", "end_time", "success")
