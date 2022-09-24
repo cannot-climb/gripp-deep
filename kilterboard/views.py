@@ -25,16 +25,3 @@ class ClimbVideoCreateView(generics.CreateAPIView):
             return Response(
                 {"message": "token is needed"}, status=status.HTTP_401_UNAUTHORIZED
             )
-
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        # video: ClimbVideo = self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        # print(video.video.path)
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
-        )
-
-    def perform_create(self, serializer):
-        return serializer.save()
