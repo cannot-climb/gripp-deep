@@ -1,5 +1,6 @@
 import datetime
 import os
+import uuid
 from urllib import request
 from urllib.parse import urlparse
 
@@ -40,7 +41,7 @@ class ClimbVideoCreateView(customview.GenericAPIView, customview.CreateModelMixi
 
     def set_model(self, model):
         video_url = model.video_url
-        base_name = os.path.basename(urlparse(video_url).path)
+        base_name = self.get_unique_basename(urlparse(video_url).path)
         video_path = os.path.join(settings.MEDIA_ROOT, base_name)
         request.urlretrieve(video_url, video_path)
 
@@ -50,3 +51,8 @@ class ClimbVideoCreateView(customview.GenericAPIView, customview.CreateModelMixi
         model.success = True
 
         model.save()
+
+    def get_unique_basename(self, path):
+        base_name = os.path.basename(path)
+        filename, extension = os.path.splitext(base_name)
+        return filename + "-" + str(uuid.uuid4()).replace("-", "") + extension
