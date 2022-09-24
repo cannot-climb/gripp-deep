@@ -16,4 +16,7 @@ class TokenObtainPairView(views.APIView):
             "access": serializer.data["access_token"],
             "refresh": serializer.data["refresh_token"],
         }
+
+        if serializer.validated_data["username"] == "None":
+            return Response(response_data, status=status.HTTP_401_UNAUTHORIZED)
         return Response(response_data, status=status.HTTP_200_OK)
