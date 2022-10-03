@@ -30,6 +30,9 @@ class ClimbVideoCreateView(customview.GenericAPIView, customview.CreateModelMixi
     response_serializer_class = ResponseClimbVideoSerializer
 
     def post(self, request, *args, **kwargs):
+        if not os.path.exists(settings.MEDIA_ROOT):
+            os.makedirs(settings.MEDIA_ROOT)
+
         model = self.create(request, *args, **kwargs)
         self.set_model(model)
 
