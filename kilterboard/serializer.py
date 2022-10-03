@@ -12,4 +12,4 @@ class ClimbVideoSerializer(serializers.ModelSerializer):
 class ResponseClimbVideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClimbVideo
-        fields = ("start_time", "end_time", "success")
+        fields = ("title", "video_url", "start_time", "end_time", "success")

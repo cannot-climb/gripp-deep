@@ -15,7 +15,7 @@ from . import customview
 
 class IndexViewListView(generics.ListAPIView):
     queryset = ClimbVideo.objects.all()
-    serializer_class = ClimbVideoSerializer
+    serializer_class = ResponseClimbVideoSerializer
 
     def get(self, request, *args, **kwargs):
         if request.user.is_anonymous:
