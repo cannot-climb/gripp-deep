@@ -44,10 +44,8 @@ Fail: 401 Unauthorized
 
 - Request
   - videoUrl: string
-  - title: string
-  - degree: int
-  - difficulty: degree
 - Response
+  - videoUrl: string
   - success: bool
   - startTime: str
   - endTime: str
