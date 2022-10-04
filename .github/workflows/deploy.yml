@@ -1,0 +1,37 @@
+name: Django CD
+
+on:
+  push:
+    branches: [ "master" ]
+  merge:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    - name: Deploy
+        uses: actions/ssh-deploy@v2
+        env:
+          REMOTE_HOST: ${{ secrets.REMOTE_SSH_HOST }}
+          REMOTE_PORT: ${{ secrets.REMOTE_SSH_PORT }}
+          REMOTE_USER: ${{ secrets.REMOTE_SSH_USERNAME }}
+          SSH_PRIVATE_KEY: ${{ secrets.REMOTE_SSH_KEY }}
+          ARGS: -avz --delete
+          TARGET: gripp-deep/
+          EXCLUDE: .config, .git, .github
+      - name: Build Docker
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REMOTE_SSH_HOST }}
+          port: ${{ secrets.REMOTE_SSH_PORT }}
+          username: ${{ secrets.REMOTE_SSH_USERNAME }}
+          key: ${{ secrets.REMOTE_SSH_KEY }}
+          script: |
+            export GRIPP_BASIC_TOKEN=${{ secrets.GRIPP_BASIC_TOKEN }}
+            cd ~/gripp-deep
+            docker container stop gripp
+            docker build . --tag cannotclimb:0.9
+            docker run -i --name gripp -p 80:8000 cannotclimb:0.9
+            docker container start gripp
+            docker exec gripp python manage.py migrate
+            docker exec python manage.py runserver 0.0.0.0:8000
+            
