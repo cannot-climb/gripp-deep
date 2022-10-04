@@ -9,12 +9,12 @@ from django.utils import timezone
 
 class ClimbVideo(models.Model):
     video_url = models.CharField(max_length=255)
-    title = models.CharField(max_length=100)
+    title = models.CharField(max_length=100, null=True, blank=True)
     degree = models.IntegerField(
-        validators=[MaxValueValidator(70), MinValueValidator(0)]
+        validators=[MaxValueValidator(70), MinValueValidator(0)], null=True, blank=True
     )
     difficulty = models.IntegerField(
-        validators=[MaxValueValidator(19), MinValueValidator(0)]
+        validators=[MaxValueValidator(19), MinValueValidator(0)], null=True, blank=True
     )
     upload_at = models.DateTimeField(default=timezone.now)
 
