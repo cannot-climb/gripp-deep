@@ -3,6 +3,8 @@ name: Django CD
 on:
   push:
     branches: [ "master" ]
+  merge:
+    branches: [ "master" ]
 
 jobs:
   build:
@@ -24,6 +26,7 @@ jobs:
           username: ${{ secrets.REMOTE_SSH_USERNAME }}
           key: ${{ secrets.REMOTE_SSH_KEY }}
           script: |
+            export GRIPP_BASIC_TOKEN=${{ secrets.GRIPP_BASIC_TOKEN }}
             cd ~/gripp-deep
             docker container stop gripp
             docker build . --tag cannotclimb:0.9

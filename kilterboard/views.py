@@ -3,6 +3,7 @@ import os
 import uuid
 from urllib import request
 from urllib.parse import urlparse
+import logging
 
 from django.conf import settings
 from rest_framework import generics, status
@@ -46,6 +47,17 @@ class ClimbVideoCreateView(customview.GenericAPIView, customview.CreateModelMixi
         video_url = model.video_url
         base_name = self.get_unique_basename(urlparse(video_url).path)
         video_path = os.path.join(settings.MEDIA_ROOT, base_name)
+
+        try:
+            opener = request.build_opener()
+            opener.addheaders = [
+                ("Authorization", f"Basic {os.environ['GRIPP_BASIC_TOKEN']}")
+            ]
+            request.install_opener(opener)
+        except KeyError:
+            logger = logging.getLogger(__name__)
+            logger.warning("os.environ['GRIPP_BASIC_TOKEN'] does not found")
+
         request.urlretrieve(video_url, video_path)
 
         model.video = base_name
