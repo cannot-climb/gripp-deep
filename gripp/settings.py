@@ -10,8 +10,16 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 import datetime
+import logging
 import os
 from pathlib import Path
+
+logging.basicConfig(
+    format="%(asctime)s %(levelname)-8s %(message)s",
+    level=logging.INFO,
+    datefmt="[%d/%b/%Y %H:%M:%S]",
+)
+logger = logging.getLogger(__name__)
 
 # Build paths inside the project like this: BASE_DIR / "subdir".
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,7 +37,10 @@ ALLOWED_HOSTS = [
     "132.226.227.31",
     "127.0.0.1",
 ]
-
+try:
+    ALLOWED_HOSTS += [os.environ["GRIPP_BACKEND_HOST"]]
+except KeyError:
+    logger.warning("os.environ['GRIPP_BACKEND_HOST'] does not found")
 
 # Application definition
 
@@ -63,8 +74,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(days=30),
-    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=30),
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(days=365),
+    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=365),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": False,
     "UPDATE_LAST_LOGIN": True,

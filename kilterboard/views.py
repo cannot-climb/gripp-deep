@@ -2,6 +2,7 @@ import datetime
 import os
 import uuid
 from urllib import request
+from urllib.error import HTTPError
 from urllib.parse import urlparse
 import logging
 
@@ -12,6 +13,13 @@ from rest_framework.response import Response
 from .models import ClimbVideo
 from .serializer import ClimbVideoSerializer, ResponseClimbVideoSerializer
 from . import customview
+
+logging.basicConfig(
+    format="%(asctime)s %(levelname)-8s %(message)s",
+    level=logging.INFO,
+    datefmt="[%d/%b/%Y %H:%M:%S]",
+)
+logger = logging.getLogger(__name__)
 
 
 class IndexViewListView(generics.ListAPIView):
@@ -34,8 +42,24 @@ class ClimbVideoCreateView(customview.GenericAPIView, customview.CreateModelMixi
         if not os.path.exists(settings.MEDIA_ROOT):
             os.makedirs(settings.MEDIA_ROOT)
 
+        if request.user.is_anonymous:
+            return Response(
+                {"message": "token is needed"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+
         model = self.create(request, *args, **kwargs)
-        self.set_model(model)
+        status_code = self.set_model(model)
+
+        if status_code == 404:
+            return Response(
+                {"message": "videoUrl is not valid"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        if status_code == 401:
+            logger.error("os.environ['GRIPP_BASIC_TOKEN'] is not valid")
+            return Response(
+                {"message": "server error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         serializer = self.create_response(model)
         headers = self.get_success_headers(serializer.data)
@@ -43,7 +67,7 @@ class ClimbVideoCreateView(customview.GenericAPIView, customview.CreateModelMixi
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
         )
 
-    def set_model(self, model):
+    def set_model(self, model: ClimbVideo) -> int:
         video_url = model.video_url
         base_name = self.get_unique_basename(urlparse(video_url).path)
         video_path = os.path.join(settings.MEDIA_ROOT, base_name)
@@ -55,17 +79,21 @@ class ClimbVideoCreateView(customview.GenericAPIView, customview.CreateModelMixi
             ]
             request.install_opener(opener)
         except KeyError:
-            logger = logging.getLogger(__name__)
-            logger.warning("os.environ['GRIPP_BASIC_TOKEN'] does not found")
+            logger.error("os.environ['GRIPP_BASIC_TOKEN'] does not found")
 
-        request.urlretrieve(video_url, video_path)
+        try:
+            request.urlretrieve(video_url, video_path)
+        except HTTPError as e:
+            return e.status
 
         model.video = base_name
-        model.start_time = datetime.time(minute=10, second=10)
-        model.end_time = datetime.time(minute=20, second=10)
+        model.start_time = datetime.time(second=10)
+        model.end_time = datetime.time(second=20)
         model.success = True
 
         model.save()
+
+        return 200
 
     def get_unique_basename(self, path):
         base_name = os.path.basename(path)
