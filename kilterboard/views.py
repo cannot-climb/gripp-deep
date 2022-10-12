@@ -13,13 +13,9 @@ from rest_framework.response import Response
 from .models import ClimbVideo
 from .serializer import ClimbVideoSerializer, ResponseClimbVideoSerializer
 from . import customview
+from .cv import get_hold_mask, get_video_result
 
-logging.basicConfig(
-    format="%(asctime)s %(levelname)-8s %(message)s",
-    level=logging.INFO,
-    datefmt="[%d/%b/%Y %H:%M:%S]",
-)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("gripp.settings")
 
 
 class IndexViewListView(generics.ListAPIView):
@@ -86,10 +82,19 @@ class ClimbVideoCreateView(customview.GenericAPIView, customview.CreateModelMixi
         except HTTPError as e:
             return e.status
 
+        start_hold_mask, top_hold_mask = get_hold_mask(video_path)
+        start_second, end_second, success = get_video_result(
+            video_path, start_hold_mask, top_hold_mask
+        )
+
         model.video = base_name
-        model.start_time = datetime.time(second=10)
-        model.end_time = datetime.time(second=20)
-        model.success = True
+        model.start_time = datetime.time(
+            start_second // 3600, (start_second % 3600) // 60, start_second % 60
+        )
+        model.end_time = datetime.time(
+            end_second // 3600, (end_second % 3600) // 60, end_second % 60
+        )
+        model.success = success
 
         model.save()
 
