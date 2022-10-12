@@ -1,5 +1,5 @@
 black==22.8.0
-Django~=4.1.1
+Django
 matplotlib>=3.2.2
 numpy>=1.18.5
 opencv-python>=4.1.1
