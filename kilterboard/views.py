@@ -82,9 +82,9 @@ class ClimbVideoCreateView(customview.GenericAPIView, customview.CreateModelMixi
         except HTTPError as e:
             return e.status
 
-        start_hold_mask, top_hold_mask = get_hold_mask(video_path)
+        hand_hold_mask, start_hold_mask, top_hold_mask = get_hold_mask(video_path)
         start_second, end_second, success = get_video_result(
-            video_path, start_hold_mask, top_hold_mask
+            video_path, hand_hold_mask, start_hold_mask, top_hold_mask
         )
 
         start_second_int = int(start_second)
