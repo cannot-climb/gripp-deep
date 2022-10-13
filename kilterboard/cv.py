@@ -15,7 +15,6 @@ from urllib.parse import urlparse
 
 from torch.hub import get_dir, HASH_REGEX, download_url_to_file
 
-
 _model_param_url = {
     "yolov5n": "https://github.com/wonbeomjang/parameters/releases/download/parameter/yolov5n.pt",
     "yolov5n6": "https://github.com/wonbeomjang/parameters/releases/download/parameter/yolov5n6.pt",
@@ -182,8 +181,8 @@ def get_hold_mask(video_path, num_extract_frame=5):
     h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     index = 0
-    start_hold_mask = np.zeros((w, h, 3), np.uint8)
-    top_hold_mask = np.zeros((w, h, 3), np.uint8)
+    start_hold_mask = np.zeros((h, w, 3), np.uint8)
+    top_hold_mask = np.zeros((h, w, 3), np.uint8)
 
     while cap.isOpened():
         ret, image = cap.read()
@@ -205,11 +204,11 @@ def get_hold_mask(video_path, num_extract_frame=5):
 def get_video_result(video_path, start_hold_mask, top_hold_mask):
     pose_detector = PoseDetector()
     cap = cv2.VideoCapture(video_path)
-    fps = int(cap.get(cv2.CAP_PROP_FPS))
-    length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    length = cap.get(cv2.CAP_PROP_FRAME_COUNT)
 
     start_frame = 0
-    end_frame = length // fps
+    end_frame = length
     success = False
 
     index = 0
@@ -231,7 +230,10 @@ def get_video_result(video_path, start_hold_mask, top_hold_mask):
             success = True
     cap.release()
 
-    return start_frame // fps, end_frame // fps, success
+    if start_frame == end_frame:
+        end_frame += fps
+
+    return start_frame / fps, end_frame / fps, success
 
 
 if __name__ == "__main__":
@@ -244,7 +246,18 @@ if __name__ == "__main__":
     start_second, end_second, success = get_video_result(
         video_path, start_hold_mask, top_hold_mask
     )
-    datetime.time(start_second // 3600, (start_second % 3600) // 60, start_second % 60)
-    datetime.time(end_second // 3600, (end_second % 3600) // 60, end_second % 60)
-    print(time.time() - cur, start_second, end_second, success)
-    print()
+    start_second_int = int(start_second)
+    end_second_int = int(end_second)
+    start = datetime.time(
+        start_second_int // 3600,
+        (start_second_int % 3600) // 60,
+        start_second_int % 60,
+        microsecond=int((start_second - start_second_int) * 1000),
+    )
+    end = datetime.time(
+        end_second_int // 3600,
+        (end_second_int % 3600) // 60,
+        end_second_int % 60,
+        microsecond=int((end_second - end_second_int) * 1000),
+    )
+    print(time.time() - cur, start, end, success)

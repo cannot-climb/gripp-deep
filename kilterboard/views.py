@@ -87,12 +87,21 @@ class ClimbVideoCreateView(customview.GenericAPIView, customview.CreateModelMixi
             video_path, start_hold_mask, top_hold_mask
         )
 
+        start_second_int = int(start_second)
+        end_second_int = int(end_second)
+
         model.video = base_name
         model.start_time = datetime.time(
-            start_second // 3600, (start_second % 3600) // 60, start_second % 60
+            start_second_int // 3600,
+            (start_second_int % 3600) // 60,
+            start_second_int % 60,
+            int((start_second - start_second_int) * 1000),
         )
         model.end_time = datetime.time(
-            end_second // 3600, (end_second % 3600) // 60, end_second % 60
+            end_second_int // 3600,
+            (end_second_int % 3600) // 60,
+            end_second_int % 60,
+            int((end_second - end_second_int) * 1000),
         )
         model.success = success
 

@@ -94,16 +94,9 @@ LOGGING = {
 SECRET_KEY = "django-insecure-k8966#piylx7yzmznh6y)^hfzqr=5-a3-!mzg1ncc_h=j0kobt"
 
 # SECURITY WARNING: don"t run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = [
-    "132.226.227.31",
-    "127.0.0.1",
-]
-try:
-    ALLOWED_HOSTS += [os.environ["GRIPP_BACKEND_HOST"]]
-except KeyError:
-    logger.warning("os.environ['GRIPP_BACKEND_HOST'] does not found")
+ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
@@ -135,6 +128,7 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 3,
+    "TIME_FORMAT": "%H:%M:%S.%f",
 }
 
 SIMPLE_JWT = {

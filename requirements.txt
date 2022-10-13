@@ -23,3 +23,5 @@ django-cleanup==6.0.0
 pre_commit==2.20.0
 pandas>=1.1.4
 seaborn>=0.11.0
+jupyter
+notebook
