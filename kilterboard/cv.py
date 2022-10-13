@@ -149,9 +149,18 @@ class HoldDetector:
 
         start_image = np.zeros(size_t, np.uint8)
         top_image = np.zeros(size_t, np.uint8)
+        hand_image = np.zeros(size_t, np.uint8)
         pred = df.pred[0]
 
         for p in pred:
+            if p[-1] == 1.0:
+                cv2.rectangle(
+                    hand_image,
+                    (int(p[0]), int(p[1])),
+                    (int(p[2]), int(p[3])),
+                    (255, 255, 255),
+                    -1,
+                )
             if p[-1] == 2.0:
                 cv2.rectangle(
                     start_image,
@@ -169,7 +178,7 @@ class HoldDetector:
                     -1,
                 )
 
-        return start_image, top_image
+        return hand_image, start_image, top_image
 
 
 def get_hold_mask(video_path, num_extract_frame=5):
@@ -182,6 +191,7 @@ def get_hold_mask(video_path, num_extract_frame=5):
 
     index = 0
     start_hold_mask = np.zeros((h, w, 3), np.uint8)
+    hand_hold_mask = np.zeros((h, w, 3), np.uint8)
     top_hold_mask = np.zeros((h, w, 3), np.uint8)
 
     while cap.isOpened():
@@ -193,15 +203,16 @@ def get_hold_mask(video_path, num_extract_frame=5):
             continue
 
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        start_hold, top_hold = hold_detector(image)
+        hand_hold, start_hold, top_hold = hold_detector(image)
+        hand_hold_mask = cv2.bitwise_or(hand_hold_mask, hand_hold)
         start_hold_mask = cv2.bitwise_or(start_hold_mask, start_hold)
         top_hold_mask = cv2.bitwise_or(top_hold_mask, top_hold)
     cap.release()
 
-    return start_hold_mask, top_hold_mask
+    return hand_hold_mask, start_hold_mask, top_hold_mask
 
 
-def get_video_result(video_path, start_hold_mask, top_hold_mask):
+def get_video_result(video_path, hand_hold_mask, start_hold_mask, top_hold_mask):
     pose_detector = PoseDetector()
     cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS)
@@ -209,6 +220,7 @@ def get_video_result(video_path, start_hold_mask, top_hold_mask):
 
     start_frame = 0
     end_frame = length
+    hand_frame = length
     success = False
 
     index = 0
@@ -224,12 +236,15 @@ def get_video_result(video_path, start_hold_mask, top_hold_mask):
 
         if not start_frame and cv2.bitwise_and(start_hold_mask, hand).any():
             start_frame = index
-
+        elif cv2.bitwise_and(hand_hold_mask, hand).any():
+            hand_frame = index
         elif cv2.bitwise_and(top_hold_mask, hand).any():
             end_frame = index
             success = True
     cap.release()
 
+    if not success:
+        end_frame = hand_frame
     if start_frame == end_frame:
         end_frame += fps
 
@@ -242,7 +257,7 @@ if __name__ == "__main__":
     cur = time.time()
     video_path = "../media/test.mp4"
 
-    start_hold_mask, top_hold_mask = get_hold_mask(video_path)
+    hand_hold_mask, start_hold_mask, top_hold_mask = get_hold_mask(video_path)
     start_second, end_second, success = get_video_result(
         video_path, start_hold_mask, top_hold_mask
     )
