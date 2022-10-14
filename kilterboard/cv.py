@@ -1,6 +1,5 @@
-import time
-
 import cv2
+import ffmpeg
 import mediapipe as mp
 import math
 
@@ -185,6 +184,8 @@ def get_hold_mask(video_path, num_extract_frame=5):
     hold_detector = HoldDetector()
 
     cap = cv2.VideoCapture(video_path)
+    rotate_code = check_rotation(video_path)
+
     num_interval = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) // num_extract_frame
     w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -202,6 +203,9 @@ def get_hold_mask(video_path, num_extract_frame=5):
         if index % num_interval != 0:
             continue
 
+        if rotate_code:
+            image = cv2.rotate(image, rotate_code)
+
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         hand_hold, start_hold, top_hold = hold_detector(image)
         hand_hold_mask = cv2.bitwise_or(hand_hold_mask, hand_hold)
@@ -212,15 +216,21 @@ def get_hold_mask(video_path, num_extract_frame=5):
     return hand_hold_mask, start_hold_mask, top_hold_mask
 
 
-def get_video_result(video_path, hand_hold_mask, start_hold_mask, top_hold_mask):
+def get_video_result(
+    video_path, hand_hold_mask, start_hold_mask, top_hold_mask, detect_per_sec=2
+):
     pose_detector = PoseDetector()
+
     cap = cv2.VideoCapture(video_path)
+    rotate_code = check_rotation(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS)
-    length = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+    num_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
 
     start_frame = 0
-    end_frame = length
-    hand_frame = length
+    start_duration = 0
+    end_frame = num_frames
+    end_duration = 0
+    hand_frame = num_frames
     success = False
 
     index = 0
@@ -229,50 +239,94 @@ def get_video_result(video_path, hand_hold_mask, start_hold_mask, top_hold_mask)
         index += 1
         if not ret:
             break
-        if index % fps != 0:
+        if index % fps // detect_per_sec != 0:
             continue
+
+        if rotate_code:
+            image = cv2.rotate(image, rotate_code)
 
         hand = pose_detector(image, 2)
 
-        if not start_frame and cv2.bitwise_and(start_hold_mask, hand).any():
-            start_frame = index
+        if cv2.bitwise_and(start_hold_mask, hand).any():
+            start_duration += 1
+            if not start_frame and start_duration >= detect_per_sec:
+                start_frame = index
+
         elif cv2.bitwise_and(hand_hold_mask, hand).any():
             hand_frame = index
         elif cv2.bitwise_and(top_hold_mask, hand).any():
             end_frame = index
-            success = True
+            end_duration += 1
+            if end_duration >= detect_per_sec:
+                success = True
+        else:
+            start_duration = 0
+            end_duration = 0
+
     cap.release()
 
     if not success:
         end_frame = hand_frame
+        end_frame = min(num_frames, end_frame + fps)
+
     if start_frame == end_frame:
-        end_frame += fps
+        end_frame = min(num_frames, end_frame + fps)
 
     return start_frame / fps, end_frame / fps, success
 
 
+def check_rotation(path_video_file):
+    # this returns meta-data of the video file in form of a dictionary
+    meta_dict = ffmpeg.probe(path_video_file)
+    # from the dictionary, meta_dict['streams'][0]['tags']['rotate'] is the key
+    # we are looking for
+    rotate_code = (
+        meta_dict.get("streams", [dict(tags=dict())])[0]
+        .get("side_data_list", [dict()])[0]
+        .get("rotation", None)
+    )
+
+    if rotate_code == -90:
+        rotate_code = cv2.ROTATE_180
+
+    return rotate_code
+
+
 if __name__ == "__main__":
-    import datetime
+    video_path = "../media/test4.MOV"
+    # test1, test4
 
-    cur = time.time()
-    video_path = "../media/test.mp4"
+    pose_detector = PoseDetector()
+    cap = cv2.VideoCapture(video_path)
+    rotate_code = check_rotation(video_path)
 
-    hand_hold_mask, start_hold_mask, top_hold_mask = get_hold_mask(video_path)
-    start_second, end_second, success = get_video_result(
-        video_path, start_hold_mask, top_hold_mask
-    )
-    start_second_int = int(start_second)
-    end_second_int = int(end_second)
-    start = datetime.time(
-        start_second_int // 3600,
-        (start_second_int % 3600) // 60,
-        start_second_int % 60,
-        microsecond=int((start_second - start_second_int) * 1000),
-    )
-    end = datetime.time(
-        end_second_int // 3600,
-        (end_second_int % 3600) // 60,
-        end_second_int % 60,
-        microsecond=int((end_second - end_second_int) * 1000),
-    )
-    print(time.time() - cur, start, end, success)
+    hand_hold, start_hold, top_hold = get_hold_mask(video_path)
+
+    index = 0
+    while cap.isOpened():
+        ret, image = cap.read()
+        index += 1
+        if not ret:
+            break
+
+        if index % 10 != 0:
+            continue
+
+        if rotate_code:
+            image = cv2.rotate(image, rotate_code)
+
+        hand_mask = pose_detector(image)
+
+        hold_image = cv2.bitwise_or(
+            image, cv2.bitwise_or(hand_hold, cv2.bitwise_or(start_hold, top_hold))
+        )
+        hand = cv2.bitwise_or(image, hand_mask)
+        image = cv2.hconcat([hold_image, hand, start_hold])
+
+        cv2.imshow("image", image)
+
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
