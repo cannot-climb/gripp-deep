@@ -25,6 +25,7 @@ jobs:
         pip install -r requirements.txt
     - name: Run Tests
       run: |
+        python -m unittest test_cv
         python manage.py test
         flake8 *.py
         
