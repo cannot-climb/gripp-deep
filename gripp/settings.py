@@ -14,6 +14,8 @@ import logging
 import os
 from pathlib import Path
 
+os.environ["WANDB_NOTEBOOK_NAME"] = "wandb.ipynb"
+
 logging.basicConfig(
     format="%(asctime)s %(levelname)-8s %(message)s",
     level=logging.INFO,

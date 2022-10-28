@@ -10,12 +10,29 @@ from django.conf import settings
 from rest_framework import generics, status
 from rest_framework.response import Response
 
-from .models import ClimbVideo
-from .serializer import ClimbVideoSerializer, ResponseClimbVideoSerializer
+from .models import ClimbVideo, HoldDetectionModel
+from .serializer import (
+    ClimbVideoSerializer,
+    ResponseClimbVideoSerializer,
+    HoldDetectionModelSerializer,
+)
 from . import customview
 from .cv import get_hold_mask, get_video_result
 
 logger = logging.getLogger("gripp.settings")
+
+
+class HoldDetectionModelCreateView(generics.CreateAPIView):
+    queryset = HoldDetectionModel
+    serializer_class = HoldDetectionModelSerializer
+
+    def post(self, request, *args, **kwargs):
+        if request.user.is_anonymous:
+            return Response(
+                {"message": "token is needed"}, status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        return super().post(request, *args, **kwargs)
 
 
 class IndexViewListView(generics.ListAPIView):
