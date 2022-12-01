@@ -1,11 +1,12 @@
 import datetime
 from unittest import mock
 
+import torch
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.core.files import File
 
-from .models import ClimbVideo
+from .models import ClimbVideo, HoldDetectionModel
 
 
 class KilterBoardTest(TestCase):
@@ -67,3 +68,18 @@ class KilterBoardTest(TestCase):
         self.assertEqual(self.title, video.title)
         self.assertEqual(self.degree, video.degree)
         self.assertEqual(self.difficulty, video.difficulty)
+
+
+class HoldDetectionModelTest(TestCase):
+    wandb_artifact_path = ("jtiger958/Gripp/run_1vl7goai_model:v0",)
+    wandb_log_path = "jtiger958/Gripp/1vl7goai"
+
+    def test_create(self):
+        model = HoldDetectionModel.objects.create(
+            wandb_artifact_path="jtiger958/Gripp/run_1vl7goai_model:v0",
+            wandb_log_path="jtiger958/Gripp/1vl7goai",
+        )
+
+        torch.hub.load(
+            "ultralytics/yolov5", "custom", path=model.model_path.path, verbose=False
+        )
