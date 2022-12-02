@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import ClimbVideo, HoldDetectionModel
+from .models import ClimbVideo
 
 
 class ClimbVideoSerializer(serializers.ModelSerializer):
@@ -13,9 +13,3 @@ class ResponseClimbVideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClimbVideo
         fields = ("video_url", "start_time", "end_time", "success")
-
-
-class HoldDetectionModelSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = HoldDetectionModel
-        fields = ("wandb_artifact_path", "wandb_log_path")

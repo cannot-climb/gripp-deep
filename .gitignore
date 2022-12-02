@@ -558,5 +558,3 @@ $RECYCLE.BIN/
 *.pt
 *.csv
 yolov5/*
-artifacts
-wandb
