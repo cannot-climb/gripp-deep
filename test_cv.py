@@ -4,6 +4,8 @@ from urllib import request
 import cv2
 from unittest import TestCase
 
+from django.conf import settings
+
 from kilterboard.cv import get_hold_mask, get_video_result
 
 
@@ -26,6 +28,9 @@ class ComputerVisionModuleTest(TestCase):
 
     @classmethod
     def setUp(cls):
+        if not os.path.exists(settings.MEDIA_ROOT):
+            os.makedirs(settings.MEDIA_ROOT)
+
         request.urlretrieve(
             "http://gripp.wonbeomjang.kr/media/fail.MOV", cls.fail_video_path
         )

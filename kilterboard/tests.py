@@ -1,6 +1,8 @@
 import datetime
+import os
 from unittest import mock
 
+from django.conf import settings
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.core.files import File
@@ -21,6 +23,9 @@ class KilterBoardTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        if not os.path.exists(settings.MEDIA_ROOT):
+            os.makedirs(settings.MEDIA_ROOT)
+
         ClimbVideo.objects.create(
             video_url=cls.url,
             title=cls.title,
