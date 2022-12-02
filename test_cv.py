@@ -1,8 +1,8 @@
 import os
+from urllib import request
 
 import cv2
 from unittest import TestCase
-import gdown
 
 from kilterboard.cv import get_hold_mask, get_video_result
 
@@ -21,15 +21,17 @@ def get_result(video_path):
 
 
 class ComputerVisionModuleTest(TestCase):
-    fail_video_id = "1Nq7xKUPqQ-gJbohPPtm8IOvZBTQmfO1O"
-    success_video_id = "1ix5Xo0dSU6xwO3DRyHK_ZYNqEFIdSiKD"
-    fail_video_path = "fail.MOV"
-    success_video_path = "success.MOV"
+    fail_video_path = "./media/fail.MOV"
+    success_video_path = "./media/success.MOV"
 
     @classmethod
     def setUp(cls):
-        gdown.download(id=cls.fail_video_id, output=cls.fail_video_path)
-        gdown.download(id=cls.success_video_id, output=cls.success_video_path)
+        request.urlretrieve(
+            "http://gripp.wonbeomjang.kr/media/fail.MOV", cls.fail_video_path
+        )
+        request.urlretrieve(
+            "http://gripp.wonbeomjang.kr/media/success.MOV", cls.success_video_path
+        )
 
     def test_video_result(self):
         start_second, end_second, success, duration = get_result(

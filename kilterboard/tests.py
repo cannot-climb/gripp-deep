@@ -9,7 +9,7 @@ from .models import ClimbVideo
 
 
 class KilterBoardTest(TestCase):
-    url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
+    url = "http://gripp.wonbeomjang.kr/media/fail.MOV"
     title = "title"
     degree = 10
     difficulty = 1
