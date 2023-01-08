@@ -15,8 +15,8 @@ from urllib.parse import urlparse
 from torch.hub import get_dir, HASH_REGEX, download_url_to_file
 
 _model_param_url = {
-    "yolov5n": "https://github.com/wonbeomjang/parameters/releases/download/parameter/yolov5n.pt",
-    "yolov5n6": "https://github.com/wonbeomjang/parameters/releases/download/parameter/yolov5n6.pt",
+    "yolov5n": "https://github.com/cannot-climb/gripp-deep/releases/download/parameter/yolov5n.pt",
+    "yolov5n6": "https://github.com/cannot-climb/gripp-deep/releases/download/parameter/yolov5n6.pt",
 }
 
 

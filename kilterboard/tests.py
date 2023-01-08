@@ -9,7 +9,7 @@ from .models import ClimbVideo
 
 
 class KilterBoardTest(TestCase):
-    url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
+    url = "https://github.com/cannot-climb/gripp-deep/releases/download/parameter/success.mp4"
     title = "title"
     degree = 10
     difficulty = 1
