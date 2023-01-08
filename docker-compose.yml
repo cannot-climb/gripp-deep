@@ -1,0 +1,15 @@
+version: "3.1"
+
+services:
+  deep:
+    build: "."
+    ports:
+      - "${GRIPP_DEEP_PORT:-80}:8080"
+    env_file:
+      - ".env"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
+    restart: "unless-stopped"
