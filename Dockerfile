@@ -5,7 +5,6 @@ ENV DJANGO_SUPERUSER_USERNAME admin
 ENV DJANGO_SUPERUSER_PASSWORD password
 ENV DJANGO_SUPERUSER_EMAIL admin@wonbeomjang.kr
 ENV GRIPP_BASIC_TOKEN YWRtaW46cGFzc3dvcmQ=
-USER root
 WORKDIR /ffmpeg
 RUN apt-get update
 RUN apt-get -y install libgl1-mesa-glx wget
@@ -15,8 +14,9 @@ RUN ["rm", "ffmpeg.tar.xz"]
 RUN ["ln", "-s", "/ffmpeg/ffmpeg", "/usr/local/bin/ffmpeg"]
 RUN ["ln", "-s", "/ffmpeg/ffprobe", "/usr/local/bin/ffprobe"]
 WORKDIR /web
-COPY . .
+COPY requirements.txt .
 RUN pip install -r requirements.txt
+COPY . .
 RUN python -c 'import torch; torch.hub.load("ultralytics/yolov5", "yolov5n")'
 RUN rm yolov5n.pt
 ENTRYPOINT ["/web/docker-entrypoint.sh"]
