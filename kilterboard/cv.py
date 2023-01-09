@@ -1,5 +1,4 @@
 import cv2
-import ffmpeg
 import mediapipe as mp
 import math
 
@@ -184,7 +183,7 @@ def get_hold_mask(video_path, num_extract_frame=5):
     hold_detector = HoldDetector()
 
     cap = cv2.VideoCapture(video_path)
-    rotate_code = check_rotation(video_path)
+    cap.set(cv2.CAP_PROP_ORIENTATION_AUTO, 1)
 
     num_interval = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) // num_extract_frame
     w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -203,9 +202,6 @@ def get_hold_mask(video_path, num_extract_frame=5):
         if index % num_interval != 0:
             continue
 
-        if rotate_code:
-            image = cv2.rotate(image, rotate_code)
-
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         hand_hold, start_hold, top_hold = hold_detector(image)
         hand_hold_mask = cv2.bitwise_or(hand_hold_mask, hand_hold)
@@ -222,7 +218,7 @@ def get_video_result(
     pose_detector = PoseDetector()
 
     cap = cv2.VideoCapture(video_path)
-    rotate_code = check_rotation(video_path)
+    cap.set(cv2.CAP_PROP_ORIENTATION_AUTO, 1)
     fps = cap.get(cv2.CAP_PROP_FPS)
     num_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
 
@@ -241,9 +237,6 @@ def get_video_result(
             break
         if index % fps // detect_per_sec != 0:
             continue
-
-        if rotate_code:
-            image = cv2.rotate(image, rotate_code)
 
         hand = pose_detector(image, 2)
 
@@ -274,31 +267,13 @@ def get_video_result(
 
     return start_frame / fps, end_frame / fps, success
 
-
-def check_rotation(path_video_file):
-    # this returns meta-data of the video file in form of a dictionary
-    meta_dict = ffmpeg.probe(path_video_file)
-    # from the dictionary, meta_dict['streams'][0]['tags']['rotate'] is the key
-    # we are looking for
-    rotate_code = (
-        meta_dict.get("streams", [dict(tags=dict())])[0]
-        .get("side_data_list", [dict()])[0]
-        .get("rotation", None)
-    )
-
-    if rotate_code == -90:
-        rotate_code = cv2.ROTATE_180
-
-    return rotate_code
-
-
 if __name__ == "__main__":
     video_path = "../media/test4.MOV"
     # test1, test4
 
     pose_detector = PoseDetector()
     cap = cv2.VideoCapture(video_path)
-    rotate_code = check_rotation(video_path)
+    cap.set(cv2.CAP_PROP_ORIENTATION_AUTO, 1)
 
     hand_hold, start_hold, top_hold = get_hold_mask(video_path)
 
@@ -311,9 +286,6 @@ if __name__ == "__main__":
 
         if index % 10 != 0:
             continue
-
-        if rotate_code:
-            image = cv2.rotate(image, rotate_code)
 
         hand_mask = pose_detector(image)
 
